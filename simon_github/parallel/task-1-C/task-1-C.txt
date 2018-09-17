@@ -1,0 +1,55 @@
+для test-and-set spinlock:
+Пусть есть такой класс spinlock
+class spinlock {
+public:
+    spinlock()
+        : locked(false)
+    {}
+
+    void lock() {
+        while (locked.exchange(true)) {
+            // wait
+        }
+    }
+
+    void unlock() {
+        locked.store(false);
+    }
+
+private:
+    std::atomic_bool locked;
+};
+Добавим метод try_lock:
+bool try_lock() {
+	return !locked.exchange(true);
+}
+для ticket spinlock:
+Пусть есть такой класс ticket spinlock
+class ticket_spinlock {
+private:
+    using ticket = int;
+public:
+    ticket_spinlock()
+        : owner_ticket(0)
+        , next_free_ticket(0)
+    {}
+
+    void lock() {
+        ticket this_thread_ticket = next_free_ticket.fetch_add(1);
+        while (owner_ticket.load() != this_thread_ticket) {
+            // wait
+        }
+    }
+
+    void unlock() {
+        owner_ticket.store(owner_ticket.load() + 1);
+    }
+    bool try_lock(){
+        ticket tmp_ticket = owner_ticket.load();
+        return next_free_ticket.compare_exchange_strong(tmp_ticket,tmp_ticket + 1);
+    }
+private:
+    std::atomic<int> owner_ticket;
+    std::atomic<int> next_free_ticket;
+};
+

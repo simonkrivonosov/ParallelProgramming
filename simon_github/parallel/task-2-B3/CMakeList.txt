@@ -1,0 +1,1 @@
+add_executable(robot_with_n_leg main.cpp robot_with_n_legs.h)

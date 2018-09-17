@@ -1,0 +1,2 @@
+add_executable(treemutex treemutex.h main.cpp)
+
